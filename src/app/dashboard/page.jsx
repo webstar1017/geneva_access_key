@@ -8,10 +8,23 @@ import toast from "react-hot-toast";
 const Dashboard = () => {
   const [token, setToken] = useState('');
   const [hideSideBar, setHideSideBar] = useState(true);
+  const [error, setError] = useState('');
+  const [email, setEmail] = useState('');
   const generateKey = async () => {
+    if (!validateEmail(email)) {
+      setError('Email is not valid.');
+      return;
+    }
+    setError("");
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/generate-access-key`, {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email
+        })
       });
 
       if (!res.ok) {
@@ -26,7 +39,11 @@ const Dashboard = () => {
       console.error(err.message || "Error generating key");
     }
   };
-
+  const validateEmail = (email) => {
+    // Simple email regex to validate email format
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  };
   useEffect(() => {
     const width = window.innerWidth;
     if(width > 640) {
@@ -82,6 +99,7 @@ const Dashboard = () => {
           </div>
         </header>
         <div className="relative absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px]">
+
           <Input
             type="text"
             readOnly
@@ -101,8 +119,22 @@ const Dashboard = () => {
         <h1 className="relative absolute left-1/2 translate-x-[-50%] top-[calc(50%-110px)] text-center text-2xl">
           Access Key
         </h1>
-        <div className="!relative absolute left-1/2 translate-x-[-50%] top-[calc(50%-20px)] justify-center flex">
-          <Button className="" onClick={() => generateKey()}>Generate</Button>
+
+        <div className="!relative absolute left-1/2 translate-x-[-50%] top-[calc(50%-20px)] justify-center flex gap-[15px]">
+          <div>
+            <div >
+              Email <span className="text-red-600 text-[12px]">{error}</span>
+            </div>
+            <Input
+                className="w-[400px] bg-white "
+                placehoder="Please input the user's Email."
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+            />
+            <div align="center">
+              <Button className="mt-[20px]" onClick={() => generateKey()}>Generate</Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
